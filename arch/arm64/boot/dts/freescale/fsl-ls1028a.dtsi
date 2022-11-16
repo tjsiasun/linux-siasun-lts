@@ -786,12 +786,6 @@
 				compatible = "fsl,enetc";
 				reg = <0x000100 0 0 0 0>;
 			};
-			enetc_mdio_pf3: mdio@0,3 {
-				compatible = "fsl,enetc-mdio";
-				reg = <0x000300 0 0 0 0>;
-				#address-cells = <1>;
-				#size-cells = <0>;
-			};
 			enetc_port2: ethernet@0,2 {
 				compatible = "fsl,enetc";
 				reg = <0x000200 0 0 0 0>;
@@ -799,6 +793,12 @@
 					speed = <1000>;
 					full-duplex;
 				};
+			};
+			enetc_mdio_pf3: mdio@0,3 {
+				compatible = "fsl,enetc-mdio";
+				reg = <0x000300 0 0 0 0>;
+				#address-cells = <1>;
+				#size-cells = <0>;
 			};
 			ethernet@0,4 {
 				compatible = "fsl,enetc-ptp";
@@ -848,7 +848,7 @@
 						phy-mode = "gmii";
 
 						fixed-link {
-							speed = <2500>;
+							speed = <1000>;
 							full-duplex;
 						};
 					};
