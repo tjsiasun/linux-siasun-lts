@@ -1,0 +1,248 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Device Tree file for NXP LS1028A RDB Board.
+ *
+ * Copyright 2018-2019 NXP
+ *
+ * Harninder Rai <harninder.rai@nxp.com>
+ *
+ */
+
+/dts-v1/;
+#include "fsl-ls1028a.dtsi"
+
+/ {
+	model = "LS1028A RDB Board";
+	compatible = "fsl,ls1028a-rdb", "fsl,ls1028a";
+
+	aliases {
+		crypto = &crypto;
+		serial0 = &duart0;
+		serial1 = &duart1;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x0 0x80000000 0x1 0x0000000>;
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		logo_reserved: logo@f0000000 {
+			reg = <0x0 0xf0000000 0x0 0x800000>;
+		};
+	};
+
+	leds {
+                compatible = "gpio-leds";
+                pinctrl-names = "default";
+                user {
+                        label = "heartbeat";
+                        gpios = <&gpio2 6 0>;
+                        default-state = "on";
+                        linux,default-trigger = "heartbeat";
+                };
+        };
+
+	sys_mclk: clock-mclk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;
+	};
+
+	reg_1p8v: regulator-1p8v {
+		compatible = "regulator-fixed";
+		regulator-name = "1P8V";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+	};
+
+	sb_3v3: regulator-sb3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "3v3_vbus";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-boot-on;
+		regulator-always-on;
+	};
+
+};
+
+&esdhc {
+	sd-uhs-sdr104;
+	sd-uhs-sdr50;
+	sd-uhs-sdr25;
+	sd-uhs-sdr12;
+	status = "okay";
+};
+
+&esdhc1 {
+	mmc-hs200-1_8v;
+	//mmc-hs400-1_8v;
+	bus-width = <8>;
+	status = "okay";
+};
+
+&i2c0 {
+	status = "okay";
+
+	gt928:gt928_ts@14 {
+                compatible = "goodix,gt928";
+                reg = <0x14>;
+                interrupt-parent = <&gpio2>;
+                interrupts = <30 2>;
+                goodix,rst-gpio = <&gpio2 31 0>;
+                goodix,irq-gpio = <&gpio2 30 0>;
+                status = "okay";
+        };
+
+        rtc@32 {
+                compatible = "rx8010";
+                reg = <0x32>;
+                status = "okay";
+        };
+};
+
+&i2c5 {
+	status = "okay";
+
+	wm8960: wm8960@1a {
+		compatible = "wlf,wm8960";
+		reg = <0x1a>;
+		wlf,shared-lrclk;
+		clocks = <&sys_mclk>;
+		clock-names = "mclk";
+	};
+};
+
+&can0 {
+	status = "okay";
+
+	can-transceiver {
+		max-bitrate = <5000000>;
+	};
+};
+
+&can1 {
+	status = "okay";
+
+	can-transceiver {
+		max-bitrate = <5000000>;
+	};
+};
+
+&dspi2 {
+	bus-num = <0>;
+	status = "okay";
+	spidev@0 {
+                compatible = "spidev", "rohm,dh2228fv";
+                reg = <0>;
+                spi-max-frequency = <25000000>;
+		fsl,spi-cs-sck-delay = <100>;
+		fsl,spi-sck-cs-delay = <50>;
+        };
+};
+
+&fspi {
+	status = "okay";
+	mt35xu02g: flash@0 {
+		compatible = "spansion,m25p80";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		m25p,fast-read;
+		spi-max-frequency = <20000000>;
+		reg = <0>;
+		/* The following setting enables 1-1-8 (CMD-ADDR-DATA) mode */
+		spi-rx-bus-width = <4>; /* 8 SPI Rx lines */
+		spi-tx-bus-width = <1>; /* 1 SPI Tx line */
+	};
+};
+
+&duart0 {
+	status = "okay";
+};
+
+&duart1 {
+	status = "okay";
+};
+
+&enetc_port1 {
+	status = "disabled";
+};
+
+&enetc_mdio_pf3 {
+	qsgmii_phy1: ethernet-phy@0 {
+		reg = <0>;
+	};
+
+	qsgmii_phy2: ethernet-phy@1 {
+		reg = <1>;
+	};
+
+	qsgmii_phy3: ethernet-phy@2 {
+		reg = <2>;
+	};
+
+	qsgmii_phy4: ethernet-phy@3 {
+		reg = <3>;
+	};
+};
+
+/* l2switch ports */
+&mscc_felix_ports {
+	port@0 {
+		status = "okay";
+		phy-handle = <&qsgmii_phy1>;
+		phy-mode = "qsgmii";
+		managed = "in-band-status";
+	};
+
+	port@1 {
+		status = "okay";
+		phy-handle = <&qsgmii_phy2>;
+		phy-mode = "qsgmii";
+		managed = "in-band-status";
+	};
+
+	port@2 {
+		status = "okay";
+		phy-handle = <&qsgmii_phy3>;
+		phy-mode = "qsgmii";
+		managed = "in-band-status";
+	};
+
+	port@3 {
+		status = "okay";
+		phy-handle = <&qsgmii_phy4>;
+		phy-mode = "qsgmii";
+		managed = "in-band-status";
+	};
+};
+
+&sai4 {
+	status = "okay";
+};
+
+&sata {
+	status = "okay";
+};
+
+&display1 {
+	fsl,no_edid;
+	resolution = "3840x2160@60",
+		   "1920x1080@60",
+		   "1280x720@60",
+		   "720x480@60";
+	lane_mapping = <0x4e>;
+	edp_link_rate = <0x6>;
+	edp_num_lanes = <0x4>;
+	status = "okay";
+};
